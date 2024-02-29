@@ -1,13 +1,13 @@
 <script>
-  // Write your JS here, or import other files
+  import Simulate from "./Simulate.svelte";
+  console.log("Hello from App.svelte");
 </script>
 
 <main>
-  <h1>Svelte template</h1>
+  <h1>DSC106 Final Project Prototype</h1>
+  <h3>Data Representation Playground</h3>
 
-  <h1>TEST</h1>
-
-  <p>Write your HTML here</p>
+  <Simulate />
 </main>
 
 <style>
