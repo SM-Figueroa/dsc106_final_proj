@@ -13,11 +13,11 @@
     let gx;
     let gy;
 
-    let vars = data.columns;
-    vars.shift();
+    let vars = ['child_mort', 'exports', 'health', 'imports', 
+                'income', 'inflation', 'life_expec', 'total_fer', 'gdpp'];
     let var_labels = {'child_mort': 'child mortality rate', 'exports': 'exports',
                     'health': 'health', 'imports': 'imports', 'income': 'income',
-                    'inflation': 'inflation', 'life_expect': 'life expectancy', 
+                    'inflation': 'inflation', 'life_expec': 'life expectancy', 
                     'total_fer': 'fertility', 'gdpp': 'GDP'};
     let axis_labels = {'child_mort': 'child mortality rate per 1000 live births',
                     'exports': 'exports per capita (dollars)',
@@ -25,7 +25,7 @@
                     'imports': 'imports per capita (dollars)',
                     'income': 'net income per person (dollars)',
                     'inflation': 'inflation (percentage)',
-                    'life_expect': 'life expectancy (years)', 
+                    'life_expec': 'life expectancy (years)', 
                     'total_fer': 'fertility (children born to each woman)',
                     'gdpp': 'GDP per capita (dollars/person)'};
 
