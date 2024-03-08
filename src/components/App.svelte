@@ -1,5 +1,6 @@
 <script>
   import Scatter from "./Scatter.svelte";
+  import Map from "./Map.svelte";
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
 
@@ -15,7 +16,7 @@
 
         data = d3.csvParse(csv, d3.autoType);
 
-        console.log(data);
+        // console.log(data);
 
     });
 
@@ -44,10 +45,12 @@
 
   <Scatter {data}/>
 
-
   <p>
     Here (below the scatter plot) we will include a map, with countries shaded by color of cluster determined from the previous graphic.
   </p>
+
+  <Map />
+
 </main>
 
 <style>
