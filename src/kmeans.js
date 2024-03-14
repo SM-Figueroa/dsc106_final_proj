@@ -1,5 +1,24 @@
-import fs from 'fs';
-import csv from 'csv-parser';
+// import fs from 'fs';
+// import csv from 'csv-parser';
+
+
+export function km(data, centroids, var1, var2) {
+
+  // let centroids = init_centroids.slice();
+  let clusters;
+
+  // Assign points to clusters
+  clusters = assignPointsToClusters(data, centroids, var1, var2);
+
+  // Calculate new centroids
+  const newCentroids = calculateCentroids(clusters, var1, var2);
+
+  if (hasConverged(newCentroids, centroids)) {
+      console.log("Converged");
+  }
+
+  return newCentroids;
+}
 
 function kmeans(data, init_centroids, maxIterations = 1000) {
     let centroids = init_centroids.slice(); // Copy the initial centroids
@@ -29,33 +48,35 @@ function kmeans(data, init_centroids, maxIterations = 1000) {
 }
 
 function hasConverged(centroids, prevCentroids) {
+
     for (let i = 0; i < centroids.length; i++) {
-      if (!arraysEqual(centroids[i], prevCentroids[i])) {
-        return false;
+      if (centroids[i].x == prevCentroids[i].x && centroids[i].y ==  prevCentroids[i].y) {
+        return true;
       }
     }
-    return true;
+    return false;
 }
   
-function assignPointsToClusters(data, centroids) {
+function assignPointsToClusters(data, centroids, var1, var2) {
     const clusters = new Array(centroids.length).fill().map(() => []);
   
     for (let i = 0; i < data.length; i++) {
       const point = data[i];
-      const closestCentroidIndex = findClosestCentroidIndex(point, centroids);
+      const closestCentroidIndex = findClosestCentroidIndex(point, centroids, var1, var2);
+      data[i]['cluster'] = closestCentroidIndex + 1;
       clusters[closestCentroidIndex].push(point);
     }
   
     return clusters;
 }
   
-function findClosestCentroidIndex(point, centroids) {
+function findClosestCentroidIndex(point, centroids, var1, var2) {
     let minDistance = Infinity;
     let closestIndex = 0;
   
     for (let i = 0; i < centroids.length; i++) {
       const centroid = centroids[i];
-      const distance = euclideanDistance(point, centroid);
+      const distance = euclideanDistance(point, centroid, var1, var2);
   
       if (distance < minDistance) {
         minDistance = distance;
@@ -66,22 +87,28 @@ function findClosestCentroidIndex(point, centroids) {
     return closestIndex;
 }
   
-function euclideanDistance(point1, point2) {
-    let sum = 0;
-    for (let i = 0; i < point1.length; i++) {
-      sum += Math.pow(point1[i] - point2[i], 2);
-    }
+function euclideanDistance(point1, point2, var1, var2) {
+
+    let sum = Math.pow(point1[var1] - point2.x, 2) + Math.pow(point1[var2] - point2.y, 2)
+
     return Math.sqrt(sum);
 }
   
-function calculateCentroids(clusters) {
+function calculateCentroids(clusters, var1, var2) {
     return clusters.map(cluster => {
       if (cluster.length === 0) {
         return [];
       }
-      const centroid = cluster[0].map((col, i) => {
-        return cluster.reduce((sum, curr) => sum + curr[i], 0) / cluster.length;
-      });
+
+      let xsum = 0;
+      let ysum = 0;
+      for (let i=0; i < cluster.length; i++) {
+        xsum += cluster[i][var1];
+        ysum += cluster[i][var2];
+      }
+
+      let centroid = {'x': xsum/cluster.length, 'y': ysum/cluster.length};
+
       return centroid;
     });
 }
@@ -140,4 +167,4 @@ function visualize(col1, col2, init_centroids) {
         return clusteredDataWithCountry;
 }
 
-console.log(visualize('gdpp', 'imports', [[8430, 696.64], [16000, 1208.88], [32300, 9436]]));
+// console.log(visualize('gdpp', 'imports', [[8430, 696.64], [16000, 1208.88], [32300, 9436]]));

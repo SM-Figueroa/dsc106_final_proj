@@ -1,5 +1,6 @@
 <script>
     import * as d3 from 'd3';
+    import { km } from '../kmeans';
     export let data;
 
     // Declare the chart dimensions and margins.
@@ -46,9 +47,25 @@
         .domain(d3.extent(data, (d) => d[y_var]))
         .range([height - marginBottom, marginTop]);
 
+    $: col = d3
+        .scaleOrdinal()
+        .domain([0, 5])
+        .range(['gray','red', 'blue', 'green', 'purple', 'yellow']);
+
     $: d3.select(gx).call(d3.axisBottom(x));
     $: d3.select(gy).call(d3.axisLeft(y));
 
+
+    function clusterReset () {
+
+        for (let i = 0; i < data.length; i++) {
+
+            data[i]['cluster'] = 0;
+
+            data = data.map(d => ({...d}));
+        }
+    }
+    clusterReset();
 
     // Function to handle click event on the SVG
     function handleClick(event) {
@@ -76,8 +93,20 @@
 
     function clearCentroids() {
         centroids = []; // Clear the array, removing all points
+        clusterReset();
     }
 
+    // kmeans stuff
+    function runkMeans() {
+
+        if (centroids.length == 0) {
+            return;
+        }
+
+        centroids = km(data, centroids, x_var, y_var);
+
+        data = data.map(d => ({...d}));
+    }
 
     $: console.log(data);
 
@@ -87,14 +116,14 @@
 
     <div class='scatter-inputs'>
         <label for="xdropdown">x variable:</label>
-        <select id="xdropdown" bind:value={x_var}>
+        <select id="xdropdown" bind:value={x_var} on:change={clearCentroids}>
             {#each vars as v}
             <option value={v}>{var_labels[v]}</option>
             {/each}
         </select>
 
         <label for="ydropdown">y variable:</label>
-        <select id="ydropdown" bind:value={y_var}>
+        <select id="ydropdown" bind:value={y_var} on:change={clearCentroids}>
             {#each vars as v}
             <option value={v}>{var_labels[v]}</option>
             {/each}
@@ -106,6 +135,8 @@
         <input id="numComp" type="number" bind:value={numComp}>
 
         <button on:click={clearCentroids}>Clear Centroids</button>
+
+        <button on:click={runkMeans}>Run K-Means Clustering</button>
     </div>
 
     <svg
@@ -142,12 +173,13 @@
                     key={i}
                     cx={x(d[x_var])}
                     cy={y(d[y_var])}
+                    fill={col(d['cluster'])}
                     r=2.5
                 />
             {/each}
 
-            {#each centroids as c}
-                <circle cx={x(c.x)} cy={y(c.y)} r="10" fill="red" />
+            {#each centroids as c, i}
+                <circle cx={x(c.x)} cy={y(c.y)} r="10" fill={col(i + 1)} stroke="black" stroke-width=5/>
             {/each}
         </g>
     </svg>
@@ -163,6 +195,5 @@
     .points {
         stroke: "#000";
         stroke-opacity: "0.2";
-        fill: gray;
     }
 </style>
