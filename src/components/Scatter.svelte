@@ -50,7 +50,7 @@
     $: col = d3
         .scaleOrdinal()
         .domain([0, 5])
-        .range(['gray','red', 'blue', 'green', 'purple', 'yellow']);
+        .range(['#5AC8FA', '#FFA500', '#008080', '#EE82EE', '#483D8B']);
 
     $: d3.select(gx).call(d3.axisBottom(x));
     $: d3.select(gy).call(d3.axisLeft(y));
@@ -96,14 +96,20 @@
         clusterReset();
     }
 
+    let converged = false;
+
     // kmeans stuff
     function runkMeans() {
 
         if (centroids.length == 0) {
             return;
         }
-
+        
         centroids = km(data, centroids, x_var, y_var);
+
+        if (centroids == -1) {
+            converged = true;
+        }
 
         data = data.map(d => ({...d}));
     }
@@ -132,10 +138,9 @@
 
 
         <label for="numComp">Number of Components:</label>
-        <input id="numComp" type="number" bind:value={numComp}>
+        <input id="numComp" type="number" bind:value={numComp} max="5" min="0">
 
         <button on:click={clearCentroids}>Clear Centroids</button>
-
         <button on:click={runkMeans}>Run K-Means Clustering</button>
     </div>
 
@@ -173,15 +178,18 @@
                     key={i}
                     cx={x(d[x_var])}
                     cy={y(d[y_var])}
-                    fill={col(d['cluster'])}
+                    fill={d.cluster ? col(d.cluster) : 'gray'}
                     r=2.5
                 />
             {/each}
 
             {#each centroids as c, i}
-                <circle cx={x(c.x)} cy={y(c.y)} r="10" fill={col(i + 1)} stroke="black" stroke-width=5/>
+                <circle cx={x(c.x)} cy={y(c.y)} r="10" fill={col(i+1)} stroke="black" stroke-width=5/>
             {/each}
         </g>
+        {#if converged}
+            <p>Converged</p>
+        {/if}
     </svg>
 </div>
 
