@@ -1,10 +1,11 @@
 <script>
+    // imports/exports
     import * as d3 from "d3";
     import { km, hasConverged } from "../kmeans";
     import Map from "./Map.svelte";
     export let data;
 
-    // Declare the chart dimensions and margins.
+    // Declare scatter plot dimensions and margins.
     const width = 1000;
     const height = 500;
     const marginTop = 65;
@@ -12,9 +13,11 @@
     const marginBottom = 50;
     const marginLeft = 160;
 
+    // Define axis variables
     let gx;
     let gy;
 
+    // Define variables and corresponding labels
     let vars = [
         "child_mort",
         "exports",
@@ -49,6 +52,7 @@
         gdpp: "GDP per capita (dollars/person)",
     };
 
+    // initial variable/centroid state
     let x_var = "health";
     let y_var = "income";
 
@@ -74,6 +78,7 @@
     $: d3.select(gx).call(d3.axisBottom(x));
     $: d3.select(gy).call(d3.axisLeft(y));
 
+    // function to set cluster of all data points to 0 (no cluster)
     function clusterReset() {
         for (let i = 0; i < data.length; i++) {
             data[i]["cluster"] = 0;
@@ -83,7 +88,7 @@
     }
     clusterReset();
 
-    // Function to handle click event on the SVG
+    // function to get/store centroid position and convert to scatter dimensions
     function handleClick(event) {
         if (centroids.length >= numComp) {
             return;
@@ -107,6 +112,7 @@
         converged = false;
     }
 
+    // function to remove all centroids/clusters from the plot
     function clearCentroids() {
         centroids = []; // Clear the array, removing all points
         converged = false;
@@ -116,7 +122,7 @@
     let converged = false;
     // $: console.log(converged);
 
-    // kmeans stuff
+    // run one step of the kmeans algorithm (kmeans.js)
     function runkMeans() {
         if (centroids.length == 0) {
             return;
@@ -134,14 +140,14 @@
         data = data.map((d) => ({ ...d }));
     }
 
-    // tooltip
+    // tooltip dimensions
     const tooltipW = 160;
     const tooltipH = 50;
     const tooltipPaddingTop = 15;
     const tooltipPaddingLeft = 12;
     const tooltipLineHeight = 12;
 
-
+    // function to keep track of mouse position over SVG
     let mousePosition = [0, 0];
     function recordMousePosition(event) {
         mousePosition = d3.pointer(event);
@@ -150,6 +156,7 @@
     let selectedPoint;
     // $: console.log(selectedPoint)
 
+    // function to show tool tip on hover
     function showTooltip(event, d) {
 
         const tooltipGroup = d3.select('#tooltip');
@@ -159,15 +166,53 @@
         // console.log(selectedPoint['country']);
     }
 
+    // function to hide tool tip after hover
     function hideTooltip() {
 
         selectedPoint = null;
+    }
+
+    // Map interaction/select
+
+    // set hover color
+    function brighten(color) {
+        return d3.color(color).brighter(0.7);
+    }
+
+    // function to get/brighten/enlarge scatter point corresponding to map country hovered
+    function mapSelect(name) {
+        // console.log(name);
+
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].country == name) {
+                const circle = d3.select(`#key-${i}`);
+                // console.log(circle);
+                circle.attr("r", 30);
+                circle.attr("fill", brighten(data[i].cluster ? col(data[i].cluster) : "gray"));
+                break;
+            }
+        }
+    };
+
+    // revert to normal after hover
+    function mapDeselect(name) {
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].country == name) {
+                const circle = d3.select(`#key-${i}`);
+                // console.log(circle);
+                circle.attr("r", 4);
+                circle.attr("fill", data[i].cluster ? col(data[i].cluster) : "gray");
+                break;
+            }
+        }
     }
 
     //$: console.log(data);
 </script>
 
 <div class="interactive-scatter">
+
+    <!-- buttons and parameters for user to play with -->
     <div class="scatter-inputs">
         <label for="xdropdown">x variable:</label>
         <select id="xdropdown" bind:value={x_var} on:change={clearCentroids}>
@@ -195,11 +240,13 @@
         <button on:click={clearCentroids}>Clear Centroids</button>
         <button on:click={runkMeans}>Run K-Means Clustering</button>
 
+        <!-- display converged message -->
         {#if converged}
             <p style="display: inline">Converged!</p>
         {/if}
     </div>
 
+    <!-- actual scatter plot -->
     <svg
         {width}
         {height}
@@ -228,7 +275,7 @@
         <g class="points">
             {#each data as d, i}
                 <circle
-                    key={i}
+                    id="key-{i}"
                     cx={x(d[x_var])}
                     cy={y(d[y_var])}
                     fill={d.cluster ? col(d.cluster) : "gray"}
@@ -250,6 +297,7 @@
             {/each}
         </g>
 
+        <!-- tooltip display if not hidden -->
         {#if selectedPoint != null}
             <g
             class="tooltip"
@@ -262,10 +310,10 @@
                     {selectedPoint.country}
                     </text>
                     <text y={tooltipLineHeight * 1.5}>
-                    {x_var}: {Math.round(selectedPoint[x_var]*100)/100}
+                    {var_labels[x_var]}: {Math.round(selectedPoint[x_var]*100)/100}
                     </text>
                     <text y={tooltipLineHeight * 2.5}>
-                    {y_var}: {Math.round(selectedPoint[y_var]*100)/100}
+                    {var_labels[y_var]}: {Math.round(selectedPoint[y_var]*100)/100}
                     </text>
                 </g>
             </g>
@@ -273,7 +321,8 @@
     </svg>
 </div>
 
-<Map {data} />
+<!-- import map -->
+<Map {data} mapSelect={mapSelect} mapDeselect={mapDeselect} colorScale={col}/>
 
 <style>
     .scatter {
