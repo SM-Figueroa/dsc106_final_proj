@@ -9,22 +9,23 @@ export function km(data, centroids, var1, var2) {
   // Calculate new centroids
   const newCentroids = calculateCentroids(clusters, var1, var2);
 
-  if (hasConverged(newCentroids, centroids)) {
-      console.log("Converged");
-      return -1;
-  }
+  // if (hasConverged(newCentroids, centroids)) {
+  //     console.log("Converged");
+  // }
 
   return newCentroids;
 }
 
-function hasConverged(centroids, prevCentroids) {
+export function hasConverged(centroids, prevCentroids) {
 
     for (let i = 0; i < centroids.length; i++) {
       if (centroids[i].x == prevCentroids[i].x && centroids[i].y ==  prevCentroids[i].y) {
-        return true;
+        continue;
+      } else {
+        return false;
       }
     }
-    return false;
+    return true;
 }
   
 function assignPointsToClusters(data, centroids, var1, var2) {
