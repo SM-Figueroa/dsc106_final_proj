@@ -114,7 +114,37 @@
         data = data.map(d => ({...d}));
     }
 
-    $: console.log(data);
+    // tooltip
+    const tooltipW = 120;
+    const tooltipH = 50;
+    const tooltipPaddingTop = 15;
+    const tooltipPaddingLeft = 8;
+    const tooltipLineHeight = 8;
+
+
+    let mousePosition = [0, 0];
+    function recordMousePosition(event) {
+        mousePosition = d3.pointer(event);
+    }
+
+    let selectedPoint = data[0];
+    // $: console.log(selectedPoint)
+
+    function showTooltip(event, d) {
+
+
+        const tooltipGroup = d3.select('#tooltip');
+        tooltipGroup.style('opacity', 1);
+
+        selectedPoint = d;
+        // console.log(selectedPoint['country']);
+    }
+
+    function hideTooltip() {
+
+        const tooltipGroup = d3.select('#tooltip');
+        tooltipGroup.style('opacity', 0);
+    }
 
 </script>
 
@@ -150,6 +180,7 @@
     viewBox="0 0  {width} {height}"
     class="scatter"
     on:click={handleClick}
+    on:pointermove={recordMousePosition}
     >
         <!-- x-axis -->
         <text 
@@ -180,12 +211,40 @@
                     cy={y(d[y_var])}
                     fill={d.cluster ? col(d.cluster) : 'gray'}
                     r=2.5
+                    on:mouseover={event => showTooltip(event, d)}
+                    on:mouseout={hideTooltip}
                 />
             {/each}
 
             {#each centroids as c, i}
-                <circle cx={x(c.x)} cy={y(c.y)} r="10" fill={col(i+1)} stroke="black" stroke-width=5/>
+                <circle 
+                    cx={x(c.x)}
+                    cy={y(c.y)}
+                    r="10"
+                    fill={col(i+1)} 
+                    stroke="black"
+                    stroke-width=5
+                />
             {/each}
+        </g>
+        <g
+            id="tooltip"
+            transform="translate({mousePosition[0] - tooltipW - 5},{mousePosition[1] -
+                tooltipH})"
+            opacity=0
+            >
+            <rect width={tooltipW} height={tooltipH} fill="white" stroke="black" />
+            <g transform="translate({tooltipPaddingLeft},{tooltipPaddingTop})">
+                <text class="tooltip-name" font-size=12>
+                    {selectedPoint['country']}
+                  </text>
+                  <text y={tooltipLineHeight * 1.5} font-size=7>
+                    {var_labels[x_var]}: {selectedPoint[x_var]}
+                  </text>
+                  <text y={tooltipLineHeight * 2.5} font-size=7>
+                    {var_labels[y_var]}: {selectedPoint[y_var]}
+                  </text>
+            </g>
         </g>
         {#if converged}
             <p>Converged</p>
