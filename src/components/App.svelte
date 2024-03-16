@@ -24,8 +24,7 @@
 </script>
 
 <main>
-  <h1>DSC106 Final Project Prototype</h1>
-  <h3>Country Clustering</h3>
+  <h1>K-Means Clustering Sanbox</h1>
 
   <p>
     Visualized below is a dataset of livelihood statistics, 
@@ -44,10 +43,6 @@
   </p>
 
   <Scatter {data}/>
-
-  <p>
-    Here (below the scatter plot) we will include a map, with countries shaded by color of cluster determined from the previous graphic.
-  </p>
   
 </main>
 
