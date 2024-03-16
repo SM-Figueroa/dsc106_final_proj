@@ -1,6 +1,7 @@
 <script>
     import * as d3 from 'd3';
     import { km } from '../kmeans';
+    import Map from "./Map.svelte";
     export let data;
 
     // Declare the chart dimensions and margins.
@@ -114,7 +115,7 @@
         data = data.map(d => ({...d}));
     }
 
-    $: console.log(data);
+    //$: console.log(data);
 
 </script>
 
@@ -205,3 +206,5 @@
         stroke-opacity: "0.2";
     }
 </style>
+
+<Map {data} />
