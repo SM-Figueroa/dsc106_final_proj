@@ -165,7 +165,6 @@
         viewBox="0 0  {width} {height}"
         class="scatter"
         on:click={handleClick}
-        on:pointermove={recordMousePosition}
     >
         <!-- x-axis -->
         <text y={height - 5} x={width / 2 - 70} font-size="15px">
@@ -192,8 +191,6 @@
                     cy={y(d[y_var])}
                     fill={d.cluster ? col(d.cluster) : "gray"}
                     r="2.5"
-                    on:mouseover={(event) => showTooltip(event, d)}
-                    on:mouseout={hideTooltip}
                 />
             {/each}
 
@@ -207,31 +204,6 @@
                     stroke-width="5"
                 />
             {/each}
-        </g>
-        <g
-            id="tooltip"
-            transform="translate({mousePosition[0] -
-                tooltipW -
-                5},{mousePosition[1] - tooltipH})"
-            opacity="0"
-        >
-            <rect
-                width={tooltipW}
-                height={tooltipH}
-                fill="white"
-                stroke="black"
-            />
-            <g transform="translate({tooltipPaddingLeft},{tooltipPaddingTop})">
-                <text class="tooltip-name" font-size="12">
-                    {selectedPoint["country"]}
-                </text>
-                <text y={tooltipLineHeight * 1.5} font-size="7">
-                    {var_labels[x_var]}: {selectedPoint[x_var]}
-                </text>
-                <text y={tooltipLineHeight * 2.5} font-size="7">
-                    {var_labels[y_var]}: {selectedPoint[y_var]}
-                </text>
-            </g>
         </g>
         {#if converged}
             <p>Converged</p>
