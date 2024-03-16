@@ -1,16 +1,16 @@
 <script>
     import * as d3 from "d3";
-    import { km } from "../kmeans";
+    import { km, hasConverged } from "../kmeans";
     import Map from "./Map.svelte";
     export let data;
 
     // Declare the chart dimensions and margins.
-    const width = 800;
-    const height = 450;
-    const marginTop = 20;
+    const width = 1000;
+    const height = 500;
+    const marginTop = 65;
     const marginRight = 20;
     const marginBottom = 50;
-    const marginLeft = 80;
+    const marginLeft = 160;
 
     let gx;
     let gy;
@@ -100,17 +100,21 @@
         const x_val = x.invert(x_p);
         const y_val = y.invert(y_p);
 
-        console.log(`Data Coordinates: X=${x_val}, Y=${y_val}`);
+        // console.log(`Data Coordinates: X=${x_val}, Y=${y_val}`);
 
         centroids = [...centroids, { x: x_val, y: y_val }];
+
+        converged = false;
     }
 
     function clearCentroids() {
         centroids = []; // Clear the array, removing all points
+        converged = false;
         clusterReset();
     }
 
     let converged = false;
+    // $: console.log(converged);
 
     // kmeans stuff
     function runkMeans() {
@@ -118,13 +122,46 @@
             return;
         }
 
-        centroids = km(data, centroids, x_var, y_var);
+        let newCentroids = km(data, centroids, x_var, y_var);
 
-        if (centroids == -1) {
+        if (hasConverged(newCentroids, centroids)) {
+            // console.log("Converged");
             converged = true;
         }
 
+        centroids = newCentroids;
+
         data = data.map((d) => ({ ...d }));
+    }
+
+    // tooltip
+    const tooltipW = 160;
+    const tooltipH = 50;
+    const tooltipPaddingTop = 15;
+    const tooltipPaddingLeft = 12;
+    const tooltipLineHeight = 12;
+
+
+    let mousePosition = [0, 0];
+    function recordMousePosition(event) {
+        mousePosition = d3.pointer(event);
+    }
+
+    let selectedPoint;
+    // $: console.log(selectedPoint)
+
+    function showTooltip(event, d) {
+
+        const tooltipGroup = d3.select('#tooltip');
+        tooltipGroup.style('opacity', 1);
+
+        selectedPoint = d;
+        // console.log(selectedPoint['country']);
+    }
+
+    function hideTooltip() {
+
+        selectedPoint = null;
     }
 
     //$: console.log(data);
@@ -157,6 +194,10 @@
 
         <button on:click={clearCentroids}>Clear Centroids</button>
         <button on:click={runkMeans}>Run K-Means Clustering</button>
+
+        {#if converged}
+            <p style="display: inline">Converged!</p>
+        {/if}
     </div>
 
     <svg
@@ -165,6 +206,7 @@
         viewBox="0 0  {width} {height}"
         class="scatter"
         on:click={handleClick}
+        on:pointermove={recordMousePosition}
     >
         <!-- x-axis -->
         <text y={height - 5} x={width / 2 - 70} font-size="15px">
@@ -190,7 +232,9 @@
                     cx={x(d[x_var])}
                     cy={y(d[y_var])}
                     fill={d.cluster ? col(d.cluster) : "gray"}
-                    r="2.5"
+                    r="4"
+                    on:mouseover={(event) => showTooltip(event, d)}
+                    on:mouseout={hideTooltip}
                 />
             {/each}
 
@@ -205,8 +249,26 @@
                 />
             {/each}
         </g>
-        {#if converged}
-            <p>Converged</p>
+
+        {#if selectedPoint != null}
+            <g
+            class="tooltip"
+            transform="translate({mousePosition[0] - tooltipW - 5},{mousePosition[1] -
+                tooltipH})"
+            >
+                <rect width={tooltipW} height={tooltipH} fill="white" stroke="black" />
+                <g transform="translate({tooltipPaddingLeft},{tooltipPaddingTop})">
+                    <text class="tooltip-name">
+                    {selectedPoint.country}
+                    </text>
+                    <text y={tooltipLineHeight * 1.5}>
+                    {x_var}: {Math.round(selectedPoint[x_var]*100)/100}
+                    </text>
+                    <text y={tooltipLineHeight * 2.5}>
+                    {y_var}: {Math.round(selectedPoint[y_var]*100)/100}
+                    </text>
+                </g>
+            </g>
         {/if}
     </svg>
 </div>
