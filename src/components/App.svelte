@@ -24,28 +24,66 @@
 </script>
 
 <main>
-  <h1>K-Means Clustering Sanbox</h1>
+  <h1>K-Means Clustering Sandbox</h1>
+  <h3>Country Clustering</h3>
 
   <p>
-    Visualized below is a dataset of livelihood statistics, 
-    where each point on the scatter plot represents a country. 
-    Change the x and y variables to visualize unique trends between these statistics.
+    We’ve all heard about k-means clustering as data scientists, but have you ever wondered what it looks like step-by-step? Therefore, to answer this question, we’ve created a highly customizable sandbox to view k-mean’s behavior step-by-step. Welcome to the k-means clustering sandbox! The visualization below demonstrates k-means iteration by iteration on a dataset of livelihood statistics of countries.
   </p>
 
   <p>
-    There's also an option to set a number of components or groups to cluster the data by. 
-    After setting this value you can click on any point on the graph to draw centroids. 
+    You can choose your x-variable and y-variable in the dropdowns below. You also can choose the number of clusters you would like in the “Total Number of Clusters” dropdown. Click on the scatterplot in the locations you want to initialize your centroids. Make sure to match the number of “clicked” centroids with the number of centroids you chose in the “Number of Clusters” dropdown. Once you do that, press the “Run Next Iteration >>” button until you see the word “Converged!” below the x-axis title. When you want to reset, just click the “Clear Centroids” button. 
   </p>
 
   <p>
-    In the future, we plan use the choices of variables and centroids to perform a clustering algorithm
-    that will color code the points of the scatter plot by each cluster.
+    The output to the right is a map of the countries and clusters they are a part of. The map adjusts per iteration, so you will be able to see the countries change color as the iterations move forward! Additionally, you can hover over countries on the map to see their corresponding data point on the scatter plot!
+  </p>
+
+  <p>
+    Have fun as you explore! Try clustering on different x and y variable combinations, number of clusters, and initial centroids and takeaway how these factors influence the behavior of one of the most popular unsupervised machine learning algorithms in data science! You may also learn about different countries and how they stack up against each other based on your input variables.
   </p>
 
   <Scatter {data}/>
+
+  <p>
+    ** Note: Not all countries are included in the dataset. Therefore, even while clustering, some countries on the map will remain gray throughout the clustering process. This is fine and not an error. There also may be smaller-sized countries that are not visible by color on the map during clustering. 
+  </p>
+
+  <p>
+    Check out our <a href = "https://youtu.be/FXYI2zJfkdc">Video</a>!
+  </p>
   
 </main>
 
 <style>
-  /* Write your CSS here */
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+  main {
+      font-family: 'Montserrat', sans-serif;
+      margin: 0 auto;
+      padding: 10px;
+      text-align: center;
+  }
+
+  h1 {
+      font-size: 36px; /* Larger font size for headings */
+      color: #333;
+      margin-bottom: 20px;
+  }
+
+  h3 {
+      font-size: 24px;
+      font-weight: 700; /* Bold font weight for emphasis */
+      color: #666;
+      margin-bottom: 10px;
+  }
+
+  p {
+      font-size: 18px; /* Slightly larger font size for paragraphs */
+      line-height: 1.5;
+      color: #555;
+      margin-bottom: 15px;
+      text-align: left;
+  }
+
 </style>
