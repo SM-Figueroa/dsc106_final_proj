@@ -101,15 +101,15 @@
         const x_p = event.clientX - rect.left;
         const y_p = event.clientY - rect.top;
 
+        if (x_p >= marginLeft && x_p <= width - marginRight && y_p >= marginTop && y_p <= height - marginBottom) {
         // Use the invert function of the scales to convert pixels to data values
         const x_val = x.invert(x_p);
         const y_val = y.invert(y_p);
 
-        // console.log(`Data Coordinates: X=${x_val}, Y=${y_val}`);
-
         centroids = [...centroids, { x: x_val, y: y_val }];
 
         converged = false;
+        }
     }
 
     // function to remove all centroids/clusters from the plot
@@ -142,7 +142,7 @@
 
     // tooltip dimensions
     const tooltipW = 160;
-    const tooltipH = 50;
+    const tooltipH = 70;
     const tooltipPaddingTop = 15;
     const tooltipPaddingLeft = 12;
     const tooltipLineHeight = 12;
@@ -187,7 +187,7 @@
             if (data[i].country == name) {
                 const circle = d3.select(`#key-${i}`);
                 // console.log(circle);
-                circle.attr("r", 30);
+                circle.attr("r", 20);
                 circle.attr("fill", brighten(data[i].cluster ? col(data[i].cluster) : "gray"));
                 break;
             }
@@ -207,125 +207,136 @@
         }
     }
 
-    //$: console.log(data);
+    function handleNumCompChange(event) {
+        // Get the selected value from the dropdown
+        const selectedValue = parseInt(event.target.value);
+
+        // Update the numComp variable with the selected value
+        numComp = selectedValue;
+    }
+
+    
 </script>
 
-<div class="interactive-scatter">
+<div class = "float-container">
+    <div class = "float-child1">
+        <div class="interactive-scatter">
 
-    <!-- buttons and parameters for user to play with -->
-    <div class="scatter-inputs">
-        <label for="xdropdown">x variable:</label>
-        <select id="xdropdown" bind:value={x_var} on:change={clearCentroids}>
-            {#each vars as v}
-                <option value={v}>{var_labels[v]}</option>
-            {/each}
-        </select>
-
-        <label for="ydropdown">y variable:</label>
-        <select id="ydropdown" bind:value={y_var} on:change={clearCentroids}>
-            {#each vars as v}
-                <option value={v}>{var_labels[v]}</option>
-            {/each}
-        </select>
-
-        <label for="numComp">Number of Components:</label>
-        <input
-            id="numComp"
-            type="number"
-            bind:value={numComp}
-            max="5"
-            min="0"
-        />
-
-        <button on:click={clearCentroids}>Clear Centroids</button>
-        <button on:click={runkMeans}>Run K-Means Clustering</button>
-
-        <!-- display converged message -->
-        {#if converged}
-            <p style="display: inline">Converged!</p>
-        {/if}
+            <!-- buttons and parameters for user to play with -->
+            <div class="scatter-inputs">
+                <label for="xdropdown">x variable:</label>
+                <select id="xdropdown" bind:value={x_var} on:change={clearCentroids}>
+                    {#each vars as v}
+                        <option value={v}>{var_labels[v]}</option>
+                    {/each}
+                </select>
+        
+                <label for="ydropdown">y variable:</label>
+                <select id="ydropdown" bind:value={y_var} on:change={clearCentroids}>
+                    {#each vars as v}
+                        <option value={v}>{var_labels[v]}</option>
+                    {/each}
+                </select>
+        
+                <label for="numComp">Total Number of Clusters:</label>
+                <select id="numComp" bind:value={numComp} on:change={handleNumCompChange}>
+                    {#each Array.from({ length: 6 }, (_, i) => i) as n}
+                        <option value={n}>{n}</option>
+                    {/each}
+                </select>
+        
+                <button on:click={clearCentroids}>Clear Centroids</button>
+                <button on:click={runkMeans}>Run Next Iteration >> </button>
+        
+            </div>
+        
+            <!-- actual scatter plot -->
+            <svg
+                {width}
+                {height}
+                viewBox="0 0  {width} {height}"
+                class="scatter"
+                on:click={handleClick}
+                on:pointermove={recordMousePosition}
+            >
+                <!-- x-axis -->
+                <text y={height - 5} x={width / 2 - 70} font-size="15px">
+                    {axis_labels[x_var]}
+                </text>
+                <g bind:this={gx} transform="translate(0,{height - marginBottom})" />
+        
+                <!-- y-axis -->
+                <text
+                    transform="rotate(-90)"
+                    y={marginLeft - 50}
+                    x={-height / 2 - 80}
+                    font-size="15px"
+                >
+                    {axis_labels[y_var]}
+                </text>
+                <g bind:this={gy} transform="translate({marginLeft},0)" />
+                <!-- points -->
+                <g class="points">
+                    {#each data as d, i}
+                        <circle
+                            id="key-{i}"
+                            cx={x(d[x_var])}
+                            cy={y(d[y_var])}
+                            fill={d.cluster ? col(d.cluster) : "gray"}
+                            r="4"
+                            on:mouseover={(event) => showTooltip(event, d)}
+                            on:mouseout={hideTooltip}
+                        />
+                    {/each}
+        
+                    {#each centroids as c, i}
+                        <circle
+                            cx={x(c.x)}
+                            cy={y(c.y)}
+                            r="10"
+                            fill={col(i + 1)}
+                            stroke="black"
+                            stroke-width="5"
+                        />
+                    {/each}
+                </g>
+        
+                <!-- tooltip display if not hidden -->
+                {#if selectedPoint != null}
+                    <g
+                    class="tooltip"
+                    transform="translate({mousePosition[0] - tooltipW - 5},{mousePosition[1] -
+                        tooltipH})"
+                    >
+                        <rect width={tooltipW} height={tooltipH} fill="white" stroke="black" />
+                        <g transform="translate({tooltipPaddingLeft},{tooltipPaddingTop})">
+                            <text class="tooltip-name" y={tooltipLineHeight}>
+                                <tspan style="font-weight: bold">{selectedPoint.country}</tspan>
+                            </text>
+                            <text y={tooltipLineHeight * 2.5}>
+                            {var_labels[x_var]}: {Math.round(selectedPoint[x_var]*100)/100}
+                            </text>
+                            <text y={tooltipLineHeight * 3.75}>
+                            {var_labels[y_var]}: {Math.round(selectedPoint[y_var]*100)/100}
+                            </text>
+                        </g>
+                    </g>
+                {/if}
+            </svg>
+            <!-- display converged message -->
+            {#if converged}
+                <p class = "converged">Converged!</p>
+            {/if}
+        </div>
+        
     </div>
 
-    <!-- actual scatter plot -->
-    <svg
-        {width}
-        {height}
-        viewBox="0 0  {width} {height}"
-        class="scatter"
-        on:click={handleClick}
-        on:pointermove={recordMousePosition}
-    >
-        <!-- x-axis -->
-        <text y={height - 5} x={width / 2 - 70} font-size="15px">
-            {axis_labels[x_var]}
-        </text>
-        <g bind:this={gx} transform="translate(0,{height - marginBottom})" />
-
-        <!-- y-axis -->
-        <text
-            transform="rotate(-90)"
-            y={marginLeft - 50}
-            x={-height / 2 - 80}
-            font-size="15px"
-        >
-            {axis_labels[y_var]}
-        </text>
-        <g bind:this={gy} transform="translate({marginLeft},0)" />
-        <!-- points -->
-        <g class="points">
-            {#each data as d, i}
-                <circle
-                    id="key-{i}"
-                    cx={x(d[x_var])}
-                    cy={y(d[y_var])}
-                    fill={d.cluster ? col(d.cluster) : "gray"}
-                    r="4"
-                    on:mouseover={(event) => showTooltip(event, d)}
-                    on:mouseout={hideTooltip}
-                />
-            {/each}
-
-            {#each centroids as c, i}
-                <circle
-                    cx={x(c.x)}
-                    cy={y(c.y)}
-                    r="10"
-                    fill={col(i + 1)}
-                    stroke="black"
-                    stroke-width="5"
-                />
-            {/each}
-        </g>
-
-        <!-- tooltip display if not hidden -->
-        {#if selectedPoint != null}
-            <g
-            class="tooltip"
-            transform="translate({mousePosition[0] - tooltipW - 5},{mousePosition[1] -
-                tooltipH})"
-            >
-                <rect width={tooltipW} height={tooltipH} fill="white" stroke="black" />
-                <g transform="translate({tooltipPaddingLeft},{tooltipPaddingTop})">
-                    <text class="tooltip-name">
-                    {selectedPoint.country}
-                    </text>
-                    <text y={tooltipLineHeight * 1.5}>
-                    {var_labels[x_var]}: {Math.round(selectedPoint[x_var]*100)/100}
-                    </text>
-                    <text y={tooltipLineHeight * 2.5}>
-                    {var_labels[y_var]}: {Math.round(selectedPoint[y_var]*100)/100}
-                    </text>
-                </g>
-            </g>
-        {/if}
-    </svg>
+    <div class = "float-child2">
+        <div class = "map">
+            <Map {data} mapSelect={mapSelect} mapDeselect={mapDeselect} colorScale={col}/>
+        </div>
+    </div>
 </div>
-
-<!-- import map -->
-<p>
-    Here (below the scatter plot) we will include a map, with countries shaded by color of cluster determined from the previous graphic.
-</p>
-<Map {data} mapSelect={mapSelect} mapDeselect={mapDeselect} colorScale={col}/>
 
 <style>
     .scatter {
@@ -338,4 +349,119 @@
         stroke: "#000";
         stroke-opacity: "0.2";
     }
-</style>
+
+    .map {
+        margin-top: 60px;
+    }
+
+    .converged {
+        font-size: 24px;
+        display: inline-block;
+        margin-top: 50px;
+        margin-left: 10%; /* Adjust the margin-left based on your specific layout */
+        color:#007bff;
+        font-weight: bold;
+    }
+
+    p {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #555;
+        margin-bottom: 15px;
+    }
+
+    .float-container {
+        border: 3px solid #fff;
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .float-child1 {
+        width: 60%;
+        margin: 10;
+        padding: 0;
+    }
+
+    .float-child2 {
+        width: 45%;
+        margin: 10;
+        padding: 0;
+    }
+
+        /* Styling for buttons */
+    button {
+        padding: 10px 20px; /* Padding for comfortable clicking area */
+        margin: 5px; /* Space between buttons */
+        background-color: #007bff; /* Cool blue background color */
+        color: #fff; /* White text color */
+        border: none; /* No border */
+        border-radius: 5px; /* Rounded corners */
+        font-family: 'Montserrat', sans-serif; /* Use Montserrat font */
+        font-size: 16px; /* Font size */
+        cursor: pointer; /* Show pointer cursor on hover */
+        transition: background-color 0.3s ease; /* Smooth color transition */
+    }
+
+    /* Hover effect for buttons */
+    button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+
+        /* Styling for dropdowns */
+    select {
+        padding: 10px; /* Padding for comfortable clicking area */
+        margin: 5px; /* Space between dropdowns */
+        background-color: #fff; /* White background color */
+        color: #333; /* Dark text color */
+        border: 1px solid #007bff; /* Blue border */
+        border-radius: 5px; /* Rounded corners */
+        font-family: 'Montserrat', sans-serif; /* Use Montserrat font */
+        font-size: 16px; /* Font size */
+        cursor: pointer; /* Show pointer cursor on hover */
+        transition: border-color 0.3s ease; /* Smooth border color transition */
+    }
+
+    /* Hover effect for dropdowns */
+    select:hover {
+        border-color: #0056b3; /* Darker blue border on hover */
+    }
+
+    /* Focus effect for dropdowns */
+    select:focus {
+        outline: none; /* Remove default focus outline */
+        border-color: #0056b3; /* Darker blue border on focus */
+    }
+
+    /* Styling for number input */
+    input[type="number"] {
+        padding: 10px; /* Padding for comfortable clicking area */
+        margin: 5px; /* Space between input and other elements */
+        background-color: #fff; /* White background color */
+        color: #333; /* Dark text color */
+        border: 1px solid #007bff; /* Blue border */
+        border-radius: 5px; /* Rounded corners */
+        font-family: 'Montserrat', sans-serif; /* Use Montserrat font */
+        font-size: 16px; /* Font size */
+        cursor: pointer; /* Show pointer cursor on hover */
+        transition: border-color 0.3s ease; /* Smooth border color transition */
+    }
+
+    /* Hover effect for number input */
+    input[type="number"]:hover {
+        border-color: #0056b3; /* Darker blue border on hover */
+    }
+
+    /* Focus effect for number input */
+    input[type="number"]:focus {
+        outline: none; /* Remove default focus outline */
+        border-color: #0056b3; /* Darker blue border on focus */
+    }
+
+    .tooltip text {
+    font-size: 14px; /* Adjust the font size as needed */
+    line-height: 1.5; /* Increase line height for more space between lines */
+    }
+
+
+</style> 
