@@ -50,6 +50,10 @@
   </p>
 
   <p>
+    In general, try choosing centroids along the general shape of data for the best results!
+  </p>
+
+  <p>
     Check out our <a href = "https://youtu.be/FXYI2zJfkdc">Video</a>!
   </p>
   
