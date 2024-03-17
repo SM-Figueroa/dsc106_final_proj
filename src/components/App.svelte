@@ -43,14 +43,14 @@
     Have fun as you explore! Try clustering on different x and y variable combinations, number of clusters, and initial centroids and takeaway how these factors influence the behavior of one of the most popular unsupervised machine learning algorithms in data science! You may also learn about different countries and how they stack up against each other based on your input variables.
   </p>
 
+  <p>
+    In general, try choosing centroids along the general shape of data for the best results!
+  </p>
+
   <Scatter {data}/>
 
   <p>
     ** Note: Not all countries are included in the dataset. Therefore, even while clustering, some countries on the map will remain gray throughout the clustering process. This is fine and not an error. There also may be smaller-sized countries that are not visible by color on the map during clustering. 
-  </p>
-
-  <p>
-    In general, try choosing centroids along the general shape of data for the best results!
   </p>
 
   <p>
